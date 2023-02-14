@@ -23,7 +23,7 @@ bool Status::occActive(bool value)
 {
     if (value != this->occActive())
     {
-        log<level::INFO>(fmt::format("Status::occActive OCC{} changed to {}",
+        log<level::ERR>(fmt::format("Status::occActive OCC{} changed to {}",
                                      instance, value)
                              .c_str());
         if (value)
@@ -138,7 +138,7 @@ void Status::deviceError(Error::Descriptor d)
 // Sends message to host control command handler to reset OCC
 void Status::resetOCC()
 {
-    log<level::INFO>(
+    log<level::ERR>(
         fmt::format(">>Status::resetOCC() - requesting reset for OCC{}",
                     instance)
             .c_str());
@@ -323,7 +323,7 @@ void Status::safeStateDelayExpired()
 {
     if (this->occActive())
     {
-        log<level::INFO>(
+        log<level::ERR>(
             fmt::format(
                 "safeStateDelayExpired: OCC{} is in SAFE state, requesting reset",
                 instance)
@@ -421,7 +421,7 @@ void Status::occReadStateNow()
         if (state != lastState)
         {
             // Trace OCC state changes
-            log<level::INFO>(
+            log<level::ERR>(
                 fmt::format(
                     "Status::readOccState: OCC{} state 0x{:02X} (lastState: 0x{:02X})",
                     instance, state, lastState)

@@ -88,7 +88,7 @@ void Manager::findAndCreateObjects()
                 // a chance to settle.
                 prevOCCSearch = occs;
 
-                log<level::INFO>(
+                log<level::ERR>(
                     fmt::format(
                         "Manager::findAndCreateObjects(): Waiting for OCCs (currently {})",
                         occs.size())
@@ -103,7 +103,7 @@ void Manager::findAndCreateObjects()
                 // createObjects requires OCC0 first.
                 std::sort(occs.begin(), occs.end());
 
-                log<level::INFO>(
+                log<level::ERR>(
                     fmt::format(
                         "Manager::findAndCreateObjects(): Creating {} OCC Status Objects",
                         occs.size())
@@ -124,7 +124,7 @@ void Manager::findAndCreateObjects()
             {
                 if (tracedHostWait)
                 {
-                    log<level::INFO>(
+                    log<level::ERR>(
                         "Manager::findAndCreateObjects(): Host is running");
                     tracedHostWait = false;
                 }
@@ -134,7 +134,7 @@ void Manager::findAndCreateObjects()
             {
                 if (!tracedHostWait)
                 {
-                    log<level::INFO>(
+                    log<level::ERR>(
                         "Manager::findAndCreateObjects(): Waiting for host to start");
                     tracedHostWait = true;
                 }
@@ -144,7 +144,7 @@ void Manager::findAndCreateObjects()
     }
     else
     {
-        log<level::INFO>(
+        log<level::ERR>(
             fmt::format(
                 "Manager::findAndCreateObjects(): Waiting for {} to complete...",
                 HOST_ON_FILE)
@@ -175,7 +175,7 @@ void Manager::checkAllActiveSensors()
                 if (match != queuedActiveState.end())
                 {
                     queuedActiveState.erase(match);
-                    log<level::INFO>(
+                    log<level::ERR>(
                         fmt::format(
                             "checkAllActiveSensors(): OCC{} is ACTIVE (queued)",
                             instance)
@@ -187,7 +187,7 @@ void Manager::checkAllActiveSensors()
                     allActiveSensorAvailable = false;
                     if (!tracedSensorWait)
                     {
-                        log<level::INFO>(
+                        log<level::ERR>(
                             fmt::format(
                                 "checkAllActiveSensors(): Waiting on OCC{} Active sensor",
                                 instance)
@@ -211,7 +211,7 @@ void Manager::checkAllActiveSensors()
 
         if (waitingForAllOccActiveSensors)
         {
-            log<level::INFO>(
+            log<level::ERR>(
                 "checkAllActiveSensors(): OCC Active sensors are available");
             waitingForAllOccActiveSensors = false;
         }
@@ -223,7 +223,7 @@ void Manager::checkAllActiveSensors()
         // Not all sensors were available, so keep waiting
         if (!tracedSensorWait)
         {
-            log<level::INFO>(
+            log<level::ERR>(
                 "checkAllActiveSensors(): Waiting for OCC Active sensors to become available");
             tracedSensorWait = true;
         }
@@ -297,7 +297,7 @@ void Manager::createObjects(const std::string& occ)
 
     if (statusObjects.back()->isMasterOcc())
     {
-        log<level::INFO>(
+        log<level::ERR>(
             fmt::format("Manager::createObjects(): OCC{} is the master",
                         statusObjects.back()->getOccInstanceID())
                 .c_str());
@@ -364,7 +364,7 @@ void Manager::statusCallBack(instanceID instance, bool status)
         // Start poll timer if not already started
         if (!_pollTimer->isEnabled())
         {
-            log<level::INFO>(
+            log<level::ERR>(
                 fmt::format("Manager: OCCs will be polled every {} seconds",
                             pollInterval)
                     .c_str());
@@ -385,7 +385,7 @@ void Manager::statusCallBack(instanceID instance, bool status)
             // Stop OCC poll timer
             if (_pollTimer->isEnabled())
             {
-                log<level::INFO>(
+                log<level::ERR>(
                     "Manager::statusCallBack(): OCCs are not running, stopping poll timer");
                 _pollTimer->setEnabled(false);
             }
@@ -452,7 +452,7 @@ void Manager::sbeTimeout(unsigned int instance)
 
     if (obj != statusObjects.end() && (*obj)->occActive())
     {
-        log<level::INFO>(
+        log<level::ERR>(
             fmt::format("SBE timeout, requesting HRESET (OCC{})", instance)
                 .c_str());
 
@@ -511,7 +511,7 @@ void Manager::sbeHRESETResult(instanceID instance, bool success)
 {
     if (success)
     {
-        log<level::INFO>(
+        log<level::ERR>(
             fmt::format("HRESET succeeded (OCC{})", instance).c_str());
 
         setSBEState(instance, SBE_STATE_BOOTED);
@@ -523,7 +523,7 @@ void Manager::sbeHRESETResult(instanceID instance, bool success)
 
     if (sbeCanDump(instance))
     {
-        log<level::INFO>(
+        log<level::ERR>(
             fmt::format("HRESET failed (OCC{}), triggering SBE dump", instance)
                 .c_str());
 
@@ -563,7 +563,7 @@ void Manager::sbeHRESETResult(instanceID instance, bool success)
                 "xyz.openbmc_project.Dump.Create.Error.Disabled";
             if (e.name() == ERROR_DUMP_DISABLED)
             {
-                log<level::INFO>("Dump is disabled, skipping");
+                log<level::ERR>("Dump is disabled, skipping");
             }
             else
             {
@@ -597,7 +597,7 @@ bool Manager::sbeCanDump(unsigned int instance)
     }
     catch (openpower::phal::exception::SbeError& e)
     {
-        log<level::INFO>("Failed to query SBE state");
+        log<level::ERR>("Failed to query SBE state");
     }
 
     // allow the dump in the error case
@@ -691,7 +691,7 @@ void Manager::pollerTimerExpired()
     else
     {
         // No OCCs running, so poll timer will not be restarted
-        log<level::INFO>(
+        log<level::ERR>(
             fmt::format(
                 "Manager::pollerTimerExpired: poll timer will not be restarted")
                 .c_str());
@@ -1121,7 +1121,7 @@ void Manager::readAltitude()
         if (traceAltitudeErr)
         {
             traceAltitudeErr = false;
-            log<level::INFO>(
+            log<level::ERR>(
                 fmt::format("Unable to read Altitude: {}", e.what()).c_str());
         }
         altitude = 0xFFFF; // not available
@@ -1244,7 +1244,7 @@ void Manager::validateOccMaster()
                 if (match != queuedActiveState.end())
                 {
                     queuedActiveState.erase(match);
-                    log<level::INFO>(
+                    log<level::ERR>(
                         fmt::format(
                             "validateOccMaster: OCC{} is ACTIVE (queued)",
                             instance)
@@ -1257,7 +1257,7 @@ void Manager::validateOccMaster()
                     pldmHandle->checkActiveSensor(instance);
                     if (obj->occActive())
                     {
-                        log<level::INFO>(
+                        log<level::ERR>(
                             fmt::format(
                                 "validateOccMaster: OCC{} is ACTIVE after reading sensor",
                                 instance)
@@ -1310,7 +1310,7 @@ void Manager::validateOccMaster()
     }
     else
     {
-        log<level::INFO>(
+        log<level::ERR>(
             fmt::format("validateOccMaster: OCC{} is master of {} OCCs",
                         masterInstance, activeCount)
                 .c_str());

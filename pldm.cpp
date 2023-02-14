@@ -76,7 +76,7 @@ void Interface::fetchSensorInfo(uint16_t stateSetId,
     // Found PDR
     if (tracedError)
     {
-        log<level::INFO>(
+        log<level::ERR>(
             fmt::format("fetchSensorInfo: found {} PDRs", pdrs.size()).c_str());
         tracedError = false;
     }
@@ -163,7 +163,7 @@ void Interface::sensorEvent(sdbusplus::message_t& msg)
                 static_cast<EventState>(
                     PLDM_STATE_SET_OPERATIONAL_RUNNING_STATUS_IN_SERVICE))
             {
-                log<level::INFO>(
+                log<level::ERR>(
                     fmt::format("PLDM: OCC{} is RUNNING", instance).c_str());
                 callBack(sensorEntry->second, true);
             }
@@ -171,7 +171,7 @@ void Interface::sensorEvent(sdbusplus::message_t& msg)
                      static_cast<EventState>(
                          PLDM_STATE_SET_OPERATIONAL_RUNNING_STATUS_STOPPED))
             {
-                log<level::INFO>(
+                log<level::ERR>(
                     fmt::format("PLDM: OCC{} has now STOPPED", instance)
                         .c_str());
                 callBack(instance, false);
@@ -180,7 +180,7 @@ void Interface::sensorEvent(sdbusplus::message_t& msg)
                      static_cast<EventState>(
                          PLDM_STATE_SET_OPERATIONAL_RUNNING_STATUS_DORMANT))
             {
-                log<level::INFO>(
+                log<level::ERR>(
                     fmt::format(
                         "PLDM: OCC{} has now STOPPED and system is in SAFE MODE",
                         instance)
@@ -193,7 +193,7 @@ void Interface::sensorEvent(sdbusplus::message_t& msg)
             }
             else
             {
-                log<level::INFO>(
+                log<level::ERR>(
                     fmt::format("PLDM: Unexpected PLDM state {} for OCC{}",
                                 eventState, instance)
                         .c_str());
@@ -216,7 +216,7 @@ void Interface::sensorEvent(sdbusplus::message_t& msg)
                 outstandingHResets.erase(match);
                 if (eventState == static_cast<EventState>(SBE_HRESET_NOT_READY))
                 {
-                    log<level::INFO>(
+                    log<level::ERR>(
                         fmt::format("pldm: HRESET is NOT READY (OCC{})",
                                     instance)
                             .c_str());
@@ -258,13 +258,13 @@ void Interface::clearData()
 {
     if (!sensorToOCCInstance.empty())
     {
-        log<level::INFO>(
+        log<level::ERR>(
             fmt::format("clearData: Clearing sensorToOCCInstance ({} entries)",
                         sensorToOCCInstance.size())
                 .c_str());
         for (auto entry : sensorToOCCInstance)
         {
-            log<level::INFO>(
+            log<level::ERR>(
                 fmt::format("clearData: OCC{} / sensorID: 0x{:04X}",
                             entry.second, entry.first)
                     .c_str());
@@ -524,7 +524,7 @@ bool Interface::getPldmInstanceId()
             uint8_t newInstanceId;
             reply.read(newInstanceId);
             pldmInstanceID = newInstanceId;
-            log<level::INFO>(fmt::format("pldm: got new InstanceId: {}",
+            log<level::ERR>(fmt::format("pldm: got new InstanceId: {}",
                                          pldmInstanceID.value())
                                  .c_str());
         }
@@ -569,7 +569,7 @@ void Interface::sendPldm(const std::vector<uint8_t>& request,
         registerPldmRspCallback();
 
         // Send PLDM request
-        log<level::INFO>(
+        log<level::ERR>(
             fmt::format(
                 "sendPldm: calling pldm_send(OCC{}, instance:{}, {} bytes)",
                 instance, pldmInstanceID.value(), request.size())
@@ -599,7 +599,7 @@ void Interface::sendPldm(const std::vector<uint8_t>& request,
     }
     else // not expecting the response
     {
-        log<level::INFO>(
+        log<level::ERR>(
             fmt::format(
                 "sendPldm: calling pldm_send(mctpID:{}, fd:{}, {} bytes) for OCC{}",
                 mctpEid, pldmFd, request.size(), instance)
@@ -681,7 +681,7 @@ int Interface::pldmRspCallback(sd_event_source* /*es*/, int fd,
 {
     if (!(revents & EPOLLIN))
     {
-        log<level::INFO>(
+        log<level::ERR>(
             fmt::format("pldmRspCallback - revents={:08X}", revents).c_str());
         return -1;
     }
@@ -698,7 +698,7 @@ int Interface::pldmRspCallback(sd_event_source* /*es*/, int fd,
     uint8_t* responseMsg = nullptr;
     size_t responseMsgSize{};
 
-    log<level::INFO>(
+    log<level::ERR>(
         fmt::format("pldmRspCallback: calling pldm_recv() instance:{}",
                     pldmIface->pldmInstanceID.value())
             .c_str());
@@ -716,7 +716,7 @@ int Interface::pldmRspCallback(sd_event_source* /*es*/, int fd,
     }
 
     // We got the response for the PLDM request msg that was sent
-    log<level::INFO>(
+    log<level::ERR>(
         fmt::format("pldmRspCallback: pldm_recv() rsp was {} bytes",
                     responseMsgSize)
             .c_str());
@@ -770,14 +770,14 @@ int Interface::pldmRspCallback(sd_event_source* /*es*/, int fd,
 
     if (occSensorState == PLDM_STATE_SET_OPERATIONAL_RUNNING_STATUS_IN_SERVICE)
     {
-        log<level::INFO>(
+        log<level::ERR>(
             fmt::format("pldmRspCallback: OCC{} is RUNNING", instance).c_str());
         pldmIface->callBack(instance, true);
     }
     else if (occSensorState ==
              PLDM_STATE_SET_OPERATIONAL_RUNNING_STATUS_DORMANT)
     {
-        log<level::INFO>(
+        log<level::ERR>(
             fmt::format(
                 "pldmRspCallback: OCC{} has now STOPPED and system is in SAFE MODE",
                 instance)
@@ -790,7 +790,7 @@ int Interface::pldmRspCallback(sd_event_source* /*es*/, int fd,
     }
     else
     {
-        log<level::INFO>(
+        log<level::ERR>(
             fmt::format(
                 "pldmRspCallback: OCC{} is not running (sensor state:{})",
                 instance, occSensorState)
@@ -863,7 +863,7 @@ void Interface::checkActiveSensor(uint8_t instance)
     {
         // Query the OCC Active Sensor state for this instance
         // SensorID sID = entry->first;
-        log<level::INFO>(
+        log<level::ERR>(
             fmt::format("checkActiveSensor: OCC{} / sensorID: 0x{:04X}",
                         instance, entry->first)
                 .c_str());
@@ -885,7 +885,7 @@ void Interface::checkActiveSensor(uint8_t instance)
                 "checkActiveSensor: Unable to find PLDM sensor for OCC{}",
                 instance)
                 .c_str());
-        log<level::INFO>(
+        log<level::ERR>(
             "checkActiveSensor: fetching STATE_SET_OPERATIONAL_RUNNING_STATUS");
         fetchSensorInfo(PLDM_STATE_SET_OPERATIONAL_RUNNING_STATUS,
                         sensorToOCCInstance, OCCSensorOffset);
