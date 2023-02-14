@@ -105,6 +105,7 @@ void setProperty(const std::string& objectPath, const std::string& interface,
         method.append(interface, propertyName, varValue);
 
         auto reply = bus.call(method);
+
         if (reply.is_method_error())
         {
             log<level::ERR>(
